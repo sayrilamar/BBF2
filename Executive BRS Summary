@@ -1,0 +1,64 @@
+# Executive BRS Summary — FlightValue (Metasearch Flight Search)
+
+## 1) Purpose
+FlightValue helps travelers quickly find the best **“bang for their buck”** flights by ranking results with a **clear, disclosed formula** that combines **total price** and **total duration**. Unlike “Best” labels in other apps, FlightValue explains exactly why a flight is ranked as the best value.
+
+## 2) Target Users
+- Global travelers who value **time and money** and want a transparent tradeoff.
+- No accounts or login required.
+
+## 3) Platforms (v1)
+- iOS + Android
+
+## 4) v1 Scope (In)
+### 4.1 Search
+- One-way and round-trip searches
+- Inputs: origin, destination, dates (and basic passenger/cabin defaults)
+
+### 4.2 Compare + Rank (Core Differentiator)
+- Default ranking uses a **Value Score**:
+  - **ValueScore = TotalPrice + (DurationHours × TimeValuePerHour)**
+  - DurationHours = DurationMinutes / 60
+  - TimeValuePerHour defaults to 30 (currency units/hour) and is **user-adjustable**
+- Each result shows:
+  - Total price (primary), base fare, taxes/fees
+  - Total duration (hh:mm) and stops
+  - ValueScore + a readable breakdown (e.g., “$412 + (7.5h × $30/h) = $637”)
+- Badges:
+  - Best Value (top by ValueScore)
+  - Optional: Cheapest, Fastest
+
+### 4.3 Filters & Sorting (Minimum viable)
+- Filters: stops, departure time window, max duration, price range
+- Alternate sorts: price, duration, departure time
+
+### 4.4 Metasearch Redirect
+- “Book” action deep-links out to a provider/partner site (no in-app booking)
+
+### 4.5 Freshness
+- “Last updated” timestamp shown
+- Cached results TTL ≤ 60 seconds per identical query
+- Manual refresh triggers a new provider request (subject to rate limits)
+
+## 5) v1 Out of Scope (Not included)
+- Booking, payments, fraud, refunds, changes/cancellations
+- User accounts, traveler profiles, saved passengers
+- Post-booking management and notifications
+- Customer support workflows
+
+## 6) Data & Privacy (v1)
+- The product does **not** store sensitive PII (passport numbers, DOB, payment info, KTN, addresses).
+- Any analytics (if added later) should avoid logging sensitive URLs/tokens and avoid collecting unnecessary user identifiers.
+
+## 7) Key Non-Functional Requirements
+- **Performance:** Search results displayed within **≤ 5 seconds p95**
+- **Reliability:** Graceful handling of provider timeouts/partial results with clear messaging
+- **Maintainability:** Provider integrations must be pluggable; scoring logic centralized and unit-tested
+- **Accessibility:** Ranking explanation and badges must be accessible via screen readers; not color-only indicators
+
+## 8) Success Criteria (Acceptance Targets)
+1) Search results render in **≤ 5 seconds p95**
+2) Results are ordered correctly by the disclosed ValueScore
+3) Users can understand “why this is best value” within **one tap**
+4) Data shown is “fresh” per provider, with cache TTL **≤ 60 seconds** and visible last-updated timestamp
+5) All “Book” actions redirect externally; no booking happens inside the app
