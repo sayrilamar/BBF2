@@ -1,5 +1,12 @@
 # TASKS.md — Sequenced Agent Tickets (Build Order) (Updated)
 
+## Global Rule: TDD-First Execution
+For every ticket:
+1) Add/modify tests FIRST (Red).
+2) Implement minimal code to pass (Green).
+3) Refactor and keep tests green (Refactor).
+**No ticket may be marked “Done” without tests.**
+
 > NOTE: This backlog assumes the chosen v1 decisions:
 > - Provider: Expedia Travel Redirect API (Flight Listings)
 > - Architecture: Backend proxy required
