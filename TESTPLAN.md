@@ -1,5 +1,13 @@
 # TESTPLAN.md — Verification Plan
 
+## 0. Test-Driven Development Gate
+- New behavior MUST be introduced by failing tests first.
+- PRs are rejected if they add features without:
+  - unit tests for pure logic (e.g., scoring/tie-breaking)
+  - integration tests for backend routes (e.g., /v1/search, /v1/redirect)
+  - negative tests for failure modes (timeouts, 429, expired tokens)
+- Prefer small testable increments; avoid large “big bang” tickets.
+
 ## 1. Unit Tests
 ### 1.1 ValueScore computation
 - Given (price, durationMinutes, timeValuePerHour) -> ValueScore equals:
