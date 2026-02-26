@@ -1,0 +1,140 @@
+openapi: 3.0.3
+info:
+  title: FlightValue API
+  version: 0.1.0
+servers:
+  - url: https://api.flightvalue.example
+
+paths:
+  /v1/search:
+    post:
+      summary: Search flights (metasearch)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SearchRequest"
+      responses:
+        "200":
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchResponse"
+        "400":
+          description: Invalid request
+        "429":
+          description: Rate limited (either provider or backend)
+        "504":
+          description: Provider timeout
+
+  /v1/redirect/{token}:
+    get:
+      summary: Redirect to provider booking URL (opaque token)
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "302":
+          description: Redirect to allowlisted provider URL
+        "404":
+          description: Unknown/expired token
+        "410":
+          description: Token expired
+        "400":
+          description: Token exists but URL fails allowlist validation
+
+components:
+  schemas:
+    SearchRequest:
+      type: object
+      required: [origin, destination, departDate, passengers]
+      properties:
+        origin: { type: string, description: "IATA code" }
+        destination: { type: string, description: "IATA code" }
+        departDate: { type: string, format: date }
+        returnDate: { type: string, format: date }
+        passengers:
+          type: object
+          required: [adults]
+          properties:
+            adults: { type: integer, minimum: 1, maximum: 6 }
+        cabin:
+          type: string
+          enum: [ECONOMY, PREMIUM_ECONOMY, BUSINESS, FIRST]
+        timeValuePerHour:
+          type: number
+          minimum: 0
+          maximum: 200
+
+    SearchResponse:
+      type: object
+      required: [results, lastUpdated, partial]
+      properties:
+        results:
+          type: array
+          items: { $ref: "#/components/schemas/Itinerary" }
+        lastUpdated: { type: string, format: date-time }
+        partial: { type: boolean }
+        warnings:
+          type: array
+          items: { type: string }
+        retryAfterMs:
+          type: integer
+          description: "Present when rate-limited (esp. Expedia 429)"
+
+    Itinerary:
+      type: object
+      required: [id, totalPrice, durationMinutes, stops, segments, valueScore, book]
+      properties:
+        id: { type: string }
+        totalPrice:
+          type: object
+          required: [amount, currency, baseFareAmount, taxesFeesAmount]
+          properties:
+            amount: { type: number }
+            currency: { type: string }
+            baseFareAmount: { type: number }
+            taxesFeesAmount: { type: number }
+        durationMinutes: { type: integer, minimum: 1 }
+        stops: { type: integer, minimum: 0 }
+        segments:
+          type: array
+          items: { $ref: "#/components/schemas/Segment" }
+        valueScore:
+          type: object
+          required: [amount, currency, timeValuePerHourUsed]
+          properties:
+            amount: { type: number }
+            currency: { type: string }
+            timeValuePerHourUsed: { type: number }
+        book:
+          type: object
+          required: [redirectToken]
+          properties:
+            redirectToken: { type: string }
+
+    Segment:
+      type: object
+      required: [carrier, depart, arrive, durationMinutes]
+      properties:
+        carrier: { type: string }
+        flightNumber: { type: string }
+        depart:
+          type: object
+          required: [airport, timeLocalISO, timeZone]
+          properties:
+            airport: { type: string }
+            timeLocalISO: { type: string }
+            timeZone: { type: string }
+        arrive:
+          type: object
+          required: [airport, timeLocalISO, timeZone]
+          properties:
+            airport: { type: string }
+            timeLocalISO: { type: string }
+            timeZone: { type: string }
+        durationMinutes: { type: integer, minimum: 1 }
