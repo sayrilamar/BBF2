@@ -1,46 +1,41 @@
-# KICKOFF.md — Implementation Kickoff Pack (FlightValue)
+# KICKOFF.md — Implementation Kickoff Pack (FlightValue) (Updated: TDD + Safe Defaults)
 
-## A) Preconditions (must be satisfied to integrate real provider)
-1) Expedia Travel Redirect API partner onboarding completed:
-   - Travel Redirect API Key
-   - Basic Auth username/password
-   - Initial per-minute quota value (if provided)
-2) Decide supported POS (point of sale) if provider requires it (store as config).
-3) Decide domain allowlist for redirects (default: expedia.*).
+## A) Safest Path Defaults (explicit choices)
+- **Mobile:** React Native + TypeScript using **Expo**
+- **Backend:** Node.js + TypeScript using **Fastify**
+- **Provider integration:** Start with **mocks/fixtures**; integrate Expedia only after credentials exist
+- **Airport autocomplete:** Start with a **bundled airport dataset** (no external key dependency)
 
-## B) Initial Build Strategy (minimize rework)
+## B) TDD Policy (Non-Negotiable)
+All implementation work MUST follow **Red → Green → Refactor**:
+1) **Write failing tests first** for the behavior (unit/integration/contract as appropriate).
+2) Implement the minimum code to make tests pass.
+3) Refactor with tests staying green.
+4) No PR/merge is “done” unless tests exist and pass.
+
+### Definition of Done (applies to every ticket)
+- Tests added/updated for new behavior
+- Tests pass locally and in CI
+- Edge cases/negative tests included where relevant
+- No secrets in code or logs (verify redaction tests)
+
+## C) Build Strategy (minimize rework)
 1) Implement backend + mobile against mocks first.
-2) Add Expedia adapter behind interface.
-3) Enable caching + rate limiting before load testing.
-4) Add redirect tokenization before enabling “Book”.
+2) Lock shared schemas + scoring library with unit tests.
+3) Add contract tests for `/v1/search` and `/v1/redirect/{token}` (OpenAPI-aligned).
+4) Add Expedia adapter behind provider interface and gate it with integration tests.
+5) Enable caching + rate-limit handling with integration tests before load testing.
+6) Add redirect tokenization + allowlist with security tests before enabling “Book”.
 
-## C) Proposed Repo Layout (monorepo-friendly)
-- apps/
-  - mobile/                (React Native TS)
-- services/
-  - api/                   (Node TS backend)
-- packages/
-  - shared/                (schemas, scoring library)
-- docs/
-  - SPEC.md, CONTEXT.md, TASKS.md, TESTPLAN.md
-
-## D) Environment Variables (backend)
-- EXPEDIA_API_KEY=<secret>
-- EXPEDIA_BASIC_AUTH=<secret>          # "Basic <base64(username:password)>"
-- EXPEDIA_ACCEPT=application/vnd.exp-flight.v3+json
-- REDIRECT_ALLOWLIST=expedia.com,www.expedia.com,apim.expedia.com
-- CACHE_TTL_SECONDS=30                 # must be <= 60
-- RATE_LIMIT_BUFFER=0.10               # keep 10% headroom vs remaining
-- LOG_REDACT_BOOKING_URL=true
-- SENTRY_DSN=<optional>                # backend errors only
-
-## E) Minimum API Surface (backend)
+## D) Minimum API Surface (backend)
 1) POST /v1/search
 2) GET  /v1/redirect/{token}
 3) GET  /healthz
 
-## F) Non-negotiable behaviors
-- Never expose Expedia credentials to the client.
-- Never log full Expedia booking deeplink URLs (tokens may be present).
-- Do not auto-retry Expedia 429; respect reset header.
-- Cache TTL <= 60s; refresh bypasses cache unless rate-limited.
+## E) Environment Variables (backend)
+- EXPEDIA_API_KEY=<secret>
+- EXPEDIA_BASIC_AUTH=<secret>          # "Basic <base64(username:password)>"
+- EXPEDIA_ACCEPT=application/vnd.exp-flight.v3+json
+- REDIRECT_ALLOWLIST=expedia.com,www.expedia.com
+- CACHE_TTL_SECONDS=30                 # must be <= 60
+- LOG_REDACT_BOOKING_URL=true
