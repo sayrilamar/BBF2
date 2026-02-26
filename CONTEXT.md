@@ -1,5 +1,12 @@
 # CONTEXT.md — Product Context, Decisions, Provider Notes (Updated)
 
+## Implementation Defaults (Safe Path)
+- Mobile: React Native + TypeScript (Expo)
+- Backend: Node.js + TypeScript (Fastify)
+- Methodology: TDD-first (Red → Green → Refactor), tests required for every change
+- Start with mocks + fixtures; integrate Expedia only once credentials exist
+- Airport autocomplete: bundled dataset first (no external dependency)
+
 ## 1) Product Summary
 - **Name (placeholder):** FlightValue
 - **Type:** Metasearch flight search + compare (no booking)
